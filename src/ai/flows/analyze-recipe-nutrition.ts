@@ -54,7 +54,8 @@ const prompt = ai.definePrompt({
 Recipe:
 {{recipeText}}
 
-Output the nutritional information in JSON format. If servings cannot be determined, omit the servings field.
+Output the nutritional information in JSON format.
+If servings cannot be determined, omit the servings field.
 `,
 });
 

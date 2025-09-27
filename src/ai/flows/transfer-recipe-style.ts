@@ -48,6 +48,13 @@ Original Recipe:
 Target Style:
 {{{targetStyle}}}
 
+Instructions:
+- Adapt the recipe to match the target style while keeping the core dish recognizable
+- Modify ingredients, cooking methods, or techniques as needed for the target style
+- Maintain the nutritional balance and overall appeal of the dish
+- Provide clear, step-by-step cooking instructions
+- Format the response in markdown with proper sections
+
 Transformed Recipe:`, // The model will continue from here
 });
 
