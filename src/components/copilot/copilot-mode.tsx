@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -11,9 +11,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import type { Recipe } from '@/lib/types';
-import { ChevronLeft, ChevronRight, Mic, X, Play, Pause, RefreshCw, MicOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Mic, X, Play, Pause, RefreshCw, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useTextToSpeech } from '@/hooks/use-text-to-speech';
 
 interface CoPilotModeProps {
   recipe: Recipe;
@@ -42,7 +43,7 @@ const useSpeechRecognition = (onCommand: (command: string) => void) => {
     useEffect(() => {
         if (typeof window === 'undefined') return;
         
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
             console.warn("Speech recognition not supported in this browser.");
             return;
@@ -53,18 +54,16 @@ const useSpeechRecognition = (onCommand: (command: string) => void) => {
         recognition.interimResults = false;
         recognition.lang = 'en-US';
 
-        recognition.onresult = (event) => {
+        recognition.onresult = (event: any) => {
             const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
             console.log(`Voice command heard: ${transcript}`);
             onCommand(transcript);
         };
-        
-        recognition.onerror = (event) => {
+
+        recognition.onerror = (event: any) => {
             console.error('Speech recognition error:', event.error);
             setIsListening(false);
-        };
-
-        recognition.onend = () => {
+        };        recognition.onend = () => {
             if (isListening) {
               // Restart listening if it was unintentionally stopped
               recognition.start();
@@ -102,6 +101,19 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  // Text-to-speech hook
+  const { 
+    isSupported: ttsSupported, 
+    isSpeaking, 
+    isPaused: ttsPaused, 
+    speak, 
+    stop: stopSpeech, 
+    toggle: toggleSpeech 
+  } = useTextToSpeech({
+    rate: 0.9,
+    volume: 0.8
+  });
 
   const steps = useMemo(() => {
     return recipe.instructions
@@ -149,7 +161,12 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
   useEffect(() => {
     // Reset to first step when recipe changes
     setCurrentStep(0);
-  }, [recipe]);
+    
+    // Stop any ongoing speech when recipe changes or component unmounts
+    return () => {
+      stopSpeech();
+    };
+  }, [recipe, stopSpeech]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -162,6 +179,39 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
       setCurrentStep(p => p - 1);
     }
   };
+
+  // Function to read the current step aloud
+  const readCurrentStep = useCallback(() => {
+    const stepText = steps[currentStep];
+    if (stepText && ttsSupported) {
+      speak(stepText);
+    }
+  }, [currentStep, steps, ttsSupported, speak]);
+
+  // Handle exit with cleanup
+  const handleExit = () => {
+    stopSpeech(); // Stop any ongoing speech
+    onExit();
+  };
+
+  // Auto-read step when it changes (optional - can be enabled/disabled)
+  useEffect(() => {
+    // Automatically read the step when it changes
+    if (ttsSupported && steps[currentStep]) {
+      // Stop any ongoing speech first
+      stopSpeech();
+      
+      // Add a delay to allow UI to update and previous speech to fully stop
+      const timeoutId = setTimeout(() => {
+        readCurrentStep();
+      }, 600);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        stopSpeech();
+      };
+    }
+  }, [currentStep, steps, ttsSupported, stopSpeech, readCurrentStep]);
 
   const toggleTimer = () => {
     if (timer !== null) {
@@ -191,7 +241,7 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
                 <CardTitle className="text-2xl font-headline text-primary">{recipe.recipeName}</CardTitle>
                 <CardDescription>Co-Pilot Mode: Step-by-step guidance</CardDescription>
             </div>
-            <Button variant="ghost" size="icon" onClick={onExit} aria-label="Exit CoPilot Mode">
+            <Button variant="ghost" size="icon" onClick={handleExit} aria-label="Exit CoPilot Mode">
                 <X className="h-6 w-6" />
             </Button>
           </div>
@@ -236,20 +286,37 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
                 Previous
               </Button>
               
-              {isSupported && (
-                <Button 
-                  variant={isListening ? "default" : "ghost"}
-                  size="icon" 
-                  className={cn(
-                    "w-16 h-16 mx-auto rounded-full text-accent-foreground shadow-lg hover:scale-105 transition-all",
-                    isListening ? "bg-primary animate-pulse" : "bg-accent"
-                  )}
-                  onClick={toggleListening}
-                  aria-label={isListening ? "Stop voice commands" : "Use voice commands"}
-                >
-                    {isListening ? <Mic className="h-8 w-8"/> : <MicOff className="h-8 w-8"/>}
-                </Button>
-              )}
+              <div className="flex items-center justify-center gap-2">
+                {ttsSupported && (
+                  <Button 
+                    variant={isSpeaking ? "default" : "ghost"}
+                    size="icon" 
+                    className={cn(
+                      "w-12 h-12 rounded-full text-accent-foreground shadow-lg hover:scale-105 transition-all",
+                      isSpeaking ? "bg-secondary animate-pulse" : "bg-accent"
+                    )}
+                    onClick={isSpeaking ? toggleSpeech : readCurrentStep}
+                    aria-label={isSpeaking ? (ttsPaused ? "Resume reading" : "Pause reading") : "Read step aloud"}
+                  >
+                    {isSpeaking ? (ttsPaused ? <Volume2 className="h-5 w-5"/> : <VolumeX className="h-5 w-5"/>) : <Volume2 className="h-5 w-5"/>}
+                  </Button>
+                )}
+                
+                {isSupported && (
+                  <Button 
+                    variant={isListening ? "default" : "ghost"}
+                    size="icon" 
+                    className={cn(
+                      "w-12 h-12 rounded-full text-accent-foreground shadow-lg hover:scale-105 transition-all",
+                      isListening ? "bg-primary animate-pulse" : "bg-accent"
+                    )}
+                    onClick={toggleListening}
+                    aria-label={isListening ? "Stop voice commands" : "Use voice commands"}
+                  >
+                    {isListening ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
+                  </Button>
+                )}
+              </div>
 
               {currentStep < steps.length - 1 ? (
                  <Button onClick={handleNext} className="w-full" aria-label="Next Step">
@@ -257,7 +324,7 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
                     <ChevronRight className="h-5 w-5 ml-2" />
                 </Button>
               ) : (
-                <Button onClick={onExit} variant="destructive" className="w-full" aria-label="Finish Cooking">
+                <Button onClick={handleExit} variant="destructive" className="w-full" aria-label="Finish Cooking">
                     Finish
                     <X className="h-5 w-5 ml-2" />
                 </Button>
