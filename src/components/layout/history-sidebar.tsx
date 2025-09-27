@@ -1,8 +1,9 @@
 'use client'
 
-import { SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "../ui/sidebar";
+import { SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "../ui/sidebar";
 import { Plus, MessageCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ProfileSection from "../auth/ProfileSection";
 
 interface Chat {
   id: string;
@@ -27,7 +28,7 @@ export default function HistorySidebar({ chats, currentChatId, onNewChat, onSele
             <SidebarMenuItem>
                 <SidebarMenuButton 
                     onClick={onNewChat}
-                    className="h-10 justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                    className="h-10 justify-start gap-2 bg-accent hover:bg-accent/80 text-foreground shadow-sm border border-border"
                 >
                     <Plus className="h-4 w-4" />
                     New Chat
@@ -49,7 +50,7 @@ export default function HistorySidebar({ chats, currentChatId, onNewChat, onSele
                                     variant={isActive ? "default" : undefined}
                                     className={cn(
                                         "h-10 justify-start gap-2 relative group pr-10",
-                                        isActive && "bg-accent/30 text-accent-foreground shadow-sm border border-border/30",
+                                        isActive && "bg-accent/30 shadow-sm border border-border/30",
                                         !isActive && "hover:bg-accent/50 text-muted-foreground hover:text-foreground"
                                     )}
                                     onClick={() => onSelectChat(chat.id)}
@@ -84,6 +85,9 @@ export default function HistorySidebar({ chats, currentChatId, onNewChat, onSele
             </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <ProfileSection />
+      </SidebarFooter>
     </>
   );
 }
