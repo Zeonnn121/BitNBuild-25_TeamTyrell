@@ -1,0 +1,192 @@
+'use client';
+
+import { useEffect, useRef, useState, useActionState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import type { Message, Recipe, Nutrition, GenerateRecipeState } from '@/lib/types';
+import { generateRecipeAction, analyzeNutritionAction, transferStyleAction, suggestRecipeAction } from '@/lib/actions';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import ChatMessage from './chat-message';
+import ChatInput from './chat-input';
+import { nanoid } from 'nanoid';
+import CoPilotMode from '../copilot/copilot-mode';
+
+const initialState: GenerateRecipeState = {};
+
+const initialMessage: Message = {
+  id: 'init',
+  role: 'assistant',
+  content: (
+    <div className="space-y-4 text-center">
+      <h1 className="text-4xl sm:text-5xl font-bold text-primary font-headline tracking-tight">
+        Hello, I&apos;m GourmetNet
+      </h1>
+      <p className="text-lg text-muted-foreground">
+        How can I help you in the kitchen today?
+      </p>
+    </div>
+  ),
+};
+
+export default function ChatInterface() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [formState, formAction] = useActionState(generateRecipeAction, initialState);
+  const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
+  const [view, setView] = useState<'chat' | 'copilot'>('chat');
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const { toast } = useToast();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [messages, view]);
+
+  useEffect(() => {
+    if (formState.error) {
+      toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: formState.error,
+      });
+      setMessages((prev) => prev.filter((msg) => !msg.isLoading));
+    }
+    if (formState.recipe) { // image is not needed here
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.isLoading
+            ? {
+                id: msg.id,
+                role: 'assistant',
+                recipe: formState.recipe,
+              }
+            : msg
+        )
+      );
+      formRef.current?.reset();
+    }
+  }, [formState, toast]);
+
+  const handleFormSubmit = (formData: FormData) => {
+    const image = formData.get('image') as File;
+    const text = formData.get('text') as string;
+
+    if ((!image || image.size === 0) && !text) {
+      toast({
+        variant: 'destructive',
+        title: 'No input provided',
+        description: 'Please upload an image or enter some text.',
+      });
+      return;
+    }
+
+    const imagePreviewUrl = image && image.size > 0 ? URL.createObjectURL(image) : undefined;
+    const userMessage = text || 'Uploaded ingredients';
+
+    setMessages((prev) => [
+      ...prev,
+      { id: nanoid(), role: 'user', content: userMessage, image: imagePreviewUrl },
+      { id: nanoid(), role: 'assistant', isLoading: true },
+    ]);
+  };
+  
+  const handleSuggest = async () => {
+    setIsSuggesting(true);
+    const id = nanoid();
+    setMessages((prev) => [...prev, { id: nanoid(), role: 'user', content: "Suggest a recipe" }, { id, role: 'assistant', isLoading: true, content: 'Thinking of a suggestion...' }]);
+    
+    const result = await suggestRecipeAction();
+
+    if(result.error || !result.recipe) {
+        toast({ variant: 'destructive', title: 'Suggestion Failed', description: result.error });
+        setMessages(prev => prev.filter(msg => msg.id !== id));
+    } else {
+        setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, recipe: result.recipe, content: "Here's a delicious idea for you:" } : msg));
+    }
+    setIsSuggesting(false);
+  };
+
+  const handleNutritionAnalysis = async (recipe: Recipe) => {
+    const recipeText = `Recipe: ${recipe.recipeName}\n\nIngredients:\n${recipe.ingredients.join('\n')}\n\nInstructions:\n${recipe.instructions}`;
+    const id = nanoid();
+    setMessages((prev) => [...prev, { id, role: 'assistant', isLoading: true, content: `Analyzing nutrition for ${recipe.recipeName}...` }]);
+    
+    const result = await analyzeNutritionAction(recipeText);
+
+    if(result.error || !result.nutrition) {
+        toast({ variant: 'destructive', title: 'Analysis Failed', description: result.error });
+        setMessages(prev => prev.filter(msg => msg.id !== id));
+    } else {
+        setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, nutrition: result.nutrition, content: `Here is the nutritional analysis for ${recipe.recipeName}:` } : msg));
+    }
+  };
+
+  const handleStyleTransfer = async (recipe: Recipe, style: string) => {
+    const recipeText = `Recipe Name: ${recipe.recipeName}\n\nIngredients:\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\nInstructions:\n${recipe.instructions}`;
+    const id = nanoid();
+    setMessages((prev) => [...prev, { id, role: 'assistant', isLoading: true, content: `Transforming to a ${style} style...` }]);
+    
+    const result = await transferStyleAction(recipeText, style);
+
+    if(result.error || !result.transformedRecipe) {
+        toast({ variant: 'destructive', title: 'Transformation Failed', description: result.error });
+        setMessages(prev => prev.filter(msg => msg.id !== id));
+    } else {
+        setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, recipe: result.transformedRecipe, content: `Here is the ${style} version of ${recipe.recipeName}:`, style } : msg));
+    }
+  };
+  
+  const handleStartCooking = (recipe: Recipe) => {
+    setActiveRecipe(recipe);
+    setView('copilot');
+  }
+
+  const handleExitCooking = () => {
+    setActiveRecipe(null);
+    setView('chat');
+  }
+  
+  if(view === 'copilot' && activeRecipe) {
+    return <CoPilotMode recipe={activeRecipe} onExit={handleExitCooking} />
+  }
+
+  return (
+    <div className="h-full flex flex-col">
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        <div className="space-y-8 max-w-3xl mx-auto py-8">
+          {messages.length === 0 ? (
+             <ChatMessage message={initialMessage} onAnalyzeNutrition={()=>{}} onTransferStyle={()=>{}} onStartCooking={()=>{}} />
+          ) : (
+            messages.map((msg) => (
+              <ChatMessage
+                key={msg.id}
+                message={msg}
+                onAnalyzeNutrition={handleNutritionAnalysis}
+                onTransferStyle={handleStyleTransfer}
+                onStartCooking={handleStartCooking}
+              />
+            ))
+          )}
+        </div>
+      </ScrollArea>
+      <div className="border-t bg-background/80 backdrop-blur-sm">
+        <div className="max-w-3xl mx-auto p-4">
+          <ChatInput 
+            formRef={formRef}
+            onFormSubmit={handleFormSubmit} 
+            onSuggest={handleSuggest} 
+            isSuggesting={isSuggesting}
+            formAction={formAction}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+    

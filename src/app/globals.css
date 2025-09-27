@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 35 50% 90%;
+    --foreground: 16 10% 20%;
+    --card: 35 40% 85%;
+    --card-foreground: 16 10% 20%;
+    --popover: 35 40% 85%;
+    --popover-foreground: 16 10% 20%;
+    --primary: 0 50% 35%;
+    --primary-foreground: 35 50% 90%;
+    --secondary: 70 9% 56%;
+    --secondary-foreground: 12 33% 94%;
+    --muted: 35 40% 85%;
+    --muted-foreground: 16 5% 45%;
+    --accent: 70 9% 56%;
+    --accent-foreground: 12 33% 94%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 35 30% 80%;
+    --input: 35 30% 85%;
+    --ring: 0 50% 35%;
+    --radius: 0.75rem;
+    --chart-1: 0 50% 35%;
+    --chart-2: 70 40% 40%;
+    --chart-3: 40 80% 60%;
+    --chart-4: 0 70% 60%;
+
+    --sidebar-background: 16 15% 25%;
+    --sidebar-foreground: 12 33% 94%;
+    --sidebar-primary: 0 50% 35%;
+    --sidebar-primary-foreground: 35 50% 90%;
+    --sidebar-accent: 16 10% 35%;
+    --sidebar-accent-foreground: 12 33% 94%;
+    --sidebar-border: 16 10% 35%;
+    --sidebar-ring: 0 50% 35%;
+  }
+  .dark {
+    --background: 16 10% 12%;
+    --foreground: 12 33% 94%;
+    --card: 16 10% 18%;
+    --card-foreground: 12 33% 94%;
+    --popover: 16 10% 18%;
+    --popover-foreground: 12 33% 94%;
+    --primary: 0 60% 50%;
+    --primary-foreground: 16 10% 20%;
+    --secondary: 70 9% 56%;
+    --secondary-foreground: 12 33% 94%;
+    --muted: 16 10% 22%;
+    --muted-foreground: 16 5% 65%;
+    --accent: 16 10% 25%;
+    --accent-foreground: 12 33% 94%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 16 10% 25%;
+    --input: 16 10% 25%;
+    --ring: 0 60% 50%;
+    --chart-1: 0 60% 50%;
+    --chart-2: 70 40% 40%;
+    --chart-3: 40 80% 60%;
+    --chart-4: 0 70% 60%;
+
+    --sidebar-background: 16 10% 12%;
+    --sidebar-foreground: 12 33% 94%;
+    --sidebar-primary: 0 60% 50%;
+    --sidebar-primary-foreground: 16 10% 20%;
+    --sidebar-accent: 16 10% 22%;
+    --sidebar-accent-foreground: 12 33% 94%;
+    --sidebar-border: 16 10% 22%;
+    --sidebar-ring: 0 60% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .animate-in {
+    animation-name: var(--animation, keyframes-in);
+    animation-duration: var(--duration, 300ms);
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+
+  @keyframes keyframes-in {
+    from {
+      opacity: 0;
+      transform: var(--transform, translateY(10px));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
