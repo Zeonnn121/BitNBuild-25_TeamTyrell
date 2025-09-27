@@ -107,13 +107,14 @@ export default function ChatInput({ formRef, onFormSubmit, onSuggest, isSuggesti
               <ChefHat className="w-5 h-5" />
               <span>Skill Level</span>
           </div>
-          <ToggleGroup type="single" defaultValue="Intermediate" name="skillLevel" variant="outline" className="flex-wrap justify-start">
+          <ToggleGroup type="single" defaultValue="Intermediate" variant="outline" className="flex-wrap justify-start">
             {skillLevels.map(level => (
               <ToggleGroupItem key={level} value={level} aria-label={level}>
                 {level}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+          <input type="hidden" name="skillLevel" value="Intermediate" />
         </div>
 
         <div className="space-y-2">
@@ -121,13 +122,14 @@ export default function ChatInput({ formRef, onFormSubmit, onSuggest, isSuggesti
               <Tag className="w-5 h-5" />
               <span>Recipe Style (optional)</span>
           </div>
-          <ToggleGroup type="multiple" name="styles" variant="outline" className="flex-wrap justify-start">
+          <ToggleGroup type="multiple" variant="outline" className="flex-wrap justify-start">
             {recipeStyles.map(style => (
               <ToggleGroupItem key={style} value={style} aria-label={style}>
                 {style}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+          <input type="hidden" name="styles" value="" />
         </div>
       </div>
 

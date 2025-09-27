@@ -40,6 +40,8 @@ const useSpeechRecognition = (onCommand: (command: string) => void) => {
     const recognitionRef = useRef<any>(null);
 
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             console.warn("Speech recognition not supported in this browser.");
