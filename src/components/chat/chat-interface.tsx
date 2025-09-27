@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useActionState } from 'react';
+import { useEffect, useRef, useState, useActionState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Message, Recipe, Nutrition, GenerateRecipeState } from '@/lib/types';
 import { generateRecipeAction, analyzeNutritionAction, transferStyleAction, suggestRecipeAction } from '@/lib/actions';
@@ -27,8 +27,13 @@ const initialMessage: Message = {
   ),
 };
 
-export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+interface ChatInterfaceProps {
+  messages: Message[];
+  onMessagesUpdate: (messages: Message[]) => void;
+}
+
+export default function ChatInterface({ messages: initialMessages = [], onMessagesUpdate }: ChatInterfaceProps) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [formState, formAction] = useActionState(generateRecipeAction, initialState);
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
   const [view, setView] = useState<'chat' | 'copilot'>('chat');
@@ -36,6 +41,25 @@ export default function ChatInterface() {
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Sync messages with parent
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  // Helper function to update messages and sync with parent
+  const updateMessages = useCallback((updater: (prev: Message[]) => Message[]) => {
+    setMessages(prev => {
+      const newMessages = updater(prev);
+      onMessagesUpdate(newMessages);
+      return newMessages;
+    });
+  }, [onMessagesUpdate]);
+
+  const setMessagesAndSync = useCallback((newMessages: Message[]) => {
+    setMessages(newMessages);
+    onMessagesUpdate(newMessages);
+  }, [onMessagesUpdate]);
 
 
   useEffect(() => {
@@ -54,10 +78,10 @@ export default function ChatInterface() {
         title: 'Uh oh! Something went wrong.',
         description: formState.error,
       });
-      setMessages((prev) => prev.filter((msg) => !msg.isLoading));
+      updateMessages((prev) => prev.filter((msg) => !msg.isLoading));
     }
     if (formState.recipe) { // image is not needed here
-      setMessages((prev) =>
+      updateMessages((prev) =>
         prev.map((msg) =>
           msg.isLoading
             ? {
@@ -70,7 +94,7 @@ export default function ChatInterface() {
       );
       formRef.current?.reset();
     }
-  }, [formState, toast]);
+  }, [formState, toast, updateMessages]);
 
   const handleFormSubmit = (formData: FormData) => {
     const image = formData.get('image') as File;
@@ -88,25 +112,27 @@ export default function ChatInterface() {
     const imagePreviewUrl = image && image.size > 0 ? URL.createObjectURL(image) : undefined;
     const userMessage = text || 'Uploaded ingredients';
 
-    setMessages((prev) => [
-      ...prev,
-      { id: nanoid(), role: 'user', content: userMessage, image: imagePreviewUrl },
-      { id: nanoid(), role: 'assistant', isLoading: true },
-    ]);
+    const newMessages: Message[] = [
+      ...messages,
+      { id: nanoid(), role: 'user' as const, content: userMessage, image: imagePreviewUrl },
+      { id: nanoid(), role: 'assistant' as const, isLoading: true },
+    ];
+    
+    setMessagesAndSync(newMessages);
   };
   
   const handleSuggest = async () => {
     setIsSuggesting(true);
     const id = nanoid();
-    setMessages((prev) => [...prev, { id: nanoid(), role: 'user', content: "Suggest a recipe" }, { id, role: 'assistant', isLoading: true, content: 'Thinking of a suggestion...' }]);
+    updateMessages((prev) => [...prev, { id: nanoid(), role: 'user' as const, content: "Suggest a recipe" }, { id, role: 'assistant' as const, isLoading: true, content: 'Thinking of a suggestion...' }]);
     
     const result = await suggestRecipeAction();
 
     if(result.error || !result.recipe) {
         toast({ variant: 'destructive', title: 'Suggestion Failed', description: result.error });
-        setMessages(prev => prev.filter(msg => msg.id !== id));
+        updateMessages(prev => prev.filter(msg => msg.id !== id));
     } else {
-        setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, recipe: result.recipe, content: "Here's a delicious idea for you:" } : msg));
+        updateMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, recipe: result.recipe, content: "Here's a delicious idea for you:" } : msg));
     }
     setIsSuggesting(false);
   };
@@ -114,30 +140,30 @@ export default function ChatInterface() {
   const handleNutritionAnalysis = async (recipe: Recipe) => {
     const recipeText = `Recipe: ${recipe.recipeName}\n\nIngredients:\n${recipe.ingredients.join('\n')}\n\nInstructions:\n${recipe.instructions}`;
     const id = nanoid();
-    setMessages((prev) => [...prev, { id, role: 'assistant', isLoading: true, content: `Analyzing nutrition for ${recipe.recipeName}...` }]);
+    updateMessages((prev) => [...prev, { id, role: 'assistant' as const, isLoading: true, content: `Analyzing nutrition for ${recipe.recipeName}...` }]);
     
     const result = await analyzeNutritionAction(recipeText);
 
     if(result.error || !result.nutrition) {
         toast({ variant: 'destructive', title: 'Analysis Failed', description: result.error });
-        setMessages(prev => prev.filter(msg => msg.id !== id));
+        updateMessages(prev => prev.filter(msg => msg.id !== id));
     } else {
-        setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, nutrition: result.nutrition, content: `Here is the nutritional analysis for ${recipe.recipeName}:` } : msg));
+        updateMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, nutrition: result.nutrition, content: `Here is the nutritional analysis for ${recipe.recipeName}:` } : msg));
     }
   };
 
   const handleStyleTransfer = async (recipe: Recipe, style: string) => {
     const recipeText = `Recipe Name: ${recipe.recipeName}\n\nIngredients:\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\nInstructions:\n${recipe.instructions}`;
     const id = nanoid();
-    setMessages((prev) => [...prev, { id, role: 'assistant', isLoading: true, content: `Transforming to a ${style} style...` }]);
+    updateMessages((prev) => [...prev, { id, role: 'assistant' as const, isLoading: true, content: `Transforming to a ${style} style...` }]);
     
     const result = await transferStyleAction(recipeText, style);
 
     if(result.error || !result.transformedRecipe) {
         toast({ variant: 'destructive', title: 'Transformation Failed', description: result.error });
-        setMessages(prev => prev.filter(msg => msg.id !== id));
+        updateMessages(prev => prev.filter(msg => msg.id !== id));
     } else {
-        setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, recipe: result.transformedRecipe, content: `Here is the ${style} version of ${recipe.recipeName}:`, style } : msg));
+        updateMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isLoading: false, recipe: result.transformedRecipe, content: `Here is the ${style} version of ${recipe.recipeName}:`, style } : msg));
     }
   };
   
