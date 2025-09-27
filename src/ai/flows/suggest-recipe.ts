@@ -24,7 +24,8 @@ export async function suggestRecipe(): Promise<SuggestRecipeOutput> {
 const prompt = ai.definePrompt({
   name: 'suggestRecipePrompt',
   output: { schema: SuggestRecipeOutputSchema },
-  prompt: `You are a creative chef. Your task is to suggest a single, interesting, and delicious recipe.
+  prompt: `You are a creative chef.
+Your task is to suggest a single, interesting, and delicious recipe.
 
 The recipe can be of any style and from any cuisine.
 Be creative! Don't suggest something boring like "Spaghetti Bolognese" or "Caesar Salad".
@@ -32,7 +33,8 @@ Surprise the user with something they might not have thought of.
 
 Please create a recipe.
 Provide the recipe name, a list of ingredients, and cooking instructions.
-The instructions should be a numbered list of clear, concise steps. Do not use a single paragraph.
+The instructions should be a numbered list of clear, concise steps.
+Do not use a single paragraph.
 Respond in markdown format.
 
 Recipe name:

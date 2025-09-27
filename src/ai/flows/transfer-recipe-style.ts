@@ -40,7 +40,8 @@ const prompt = ai.definePrompt({
   output: {schema: TransferRecipeStyleOutputSchema},
   prompt: `You are a culinary expert specializing in adapting recipes to different styles.
 
-You will take an original recipe and transform it into a new style, while maintaining the essence of the original recipe.
+You will take an original recipe and transform it into a new style.
+Maintain the essence of the original recipe while adapting to the target style.
 
 Original Recipe:
 {{{recipe}}}
