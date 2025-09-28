@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speech APIs Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .supported { background: #d4edda; color: #155724; }
+        .not-supported { background: #f8d7da; color: #721c24; }
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <h1>Speech APIs Test for GourmetNet</h1>
+    
+    <div class="test-section">
+        <h2>🔊 Speech Synthesis API (Text-to-Speech)</h2>
+        <div id="tts-status" class="status"></div>
+        <input type="text" id="text-input" value="Welcome to GourmetNet! Let's start cooking together." style="width: 100%; padding: 8px; margin: 10px 0;">
+        <br>
+        <button onclick="testSpeak()">🔊 Speak Text</button>
+        <button onclick="testPause()">⏸️ Pause</button>
+        <button onclick="testResume()">▶️ Resume</button>
+        <button onclick="testStop()">⏹️ Stop</button>
+        <div id="tts-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎤 Speech Recognition API (Voice Commands)</h2>
+        <div id="sr-status" class="status"></div>
+        <button onclick="startListening()" id="listen-btn">🎤 Start Listening</button>
+        <button onclick="stopListening()" id="stop-btn">🛑 Stop Listening</button>
+        <div id="sr-result"></div>
+        <div id="commands">
+            <strong>Try saying:</strong>
+            <ul>
+                <li>"next step"</li>
+                <li>"previous step"</li>
+                <li>"start timer"</li>
+                <li>"stop"</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let speechSynth;
+        let currentUtterance;
+        let recognition;
+        let isListening = false;
+
+        // Test Speech Synthesis API
+        function initTTS() {
+            const statusDiv = document.getElementById('tts-status');
+            if ('speechSynthesis' in window) {
+                speechSynth = window.speechSynthesis;
+                statusDiv.innerHTML = '✅ Speech Synthesis API is supported!';
+                statusDiv.className = 'status supported';
+                
+                // Load voices
+                speechSynth.onvoiceschanged = () => {
+                    const voices = speechSynth.getVoices();
+                    console.log('Available voices:', voices.length);
+                };
+            } else {
+                statusDiv.innerHTML = '❌ Speech Synthesis API is not supported in this browser.';
+                statusDiv.className = 'status not-supported';
+            }
+        }
+
+        function testSpeak() {
+            if (!speechSynth) return;
+            
+            const text = document.getElementById('text-input').value;
+            speechSynth.cancel(); // Stop any ongoing speech
+            
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = 0.9;
+            currentUtterance.volume = 0.8;
+            
+            currentUtterance.onstart = () => {
+                document.getElementById('tts-result').innerHTML = '🔊 Speaking...';
+            };
+            
+            currentUtterance.onend = () => {
+                document.getElementById('tts-result').innerHTML = '✅ Speech finished.';
+            };
+            
+            currentUtterance.onerror = (event) => {
+                document.getElementById('tts-result').innerHTML = `❌ Error: ${event.error}`;
+            };
+            
+            speechSynth.speak(currentUtterance);
+        }
+
+        function testPause() {
+            if (speechSynth && speechSynth.speaking) {
+                speechSynth.pause();
+                document.getElementById('tts-result').innerHTML = '⏸️ Speech paused.';
+            }
+        }
+
+        function testResume() {
+            if (speechSynth && speechSynth.paused) {
+                speechSynth.resume();
+                document.getElementById('tts-result').innerHTML = '▶️ Speech resumed.';
+            }
+        }
+
+        function testStop() {
+            if (speechSynth) {
+                speechSynth.cancel();
+                document.getElementById('tts-result').innerHTML = '⏹️ Speech stopped.';
+            }
+        }
+
+        // Test Speech Recognition API
+        function initSR() {
+            const statusDiv = document.getElementById('sr-status');
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                
+                statusDiv.innerHTML = '✅ Speech Recognition API is supported!';
+                statusDiv.className = 'status supported';
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[event.results.length - 1][0].transcript.trim();
+                    document.getElementById('sr-result').innerHTML += `<div>🎤 You said: "${transcript}"</div>`;
+                    
+                    // Test command recognition
+                    if (transcript.toLowerCase().includes('next')) {
+                        document.getElementById('sr-result').innerHTML += `<div>✅ Command recognized: NEXT</div>`;
+                    } else if (transcript.toLowerCase().includes('previous') || transcript.toLowerCase().includes('back')) {
+                        document.getElementById('sr-result').innerHTML += `<div>✅ Command recognized: PREVIOUS</div>`;
+                    } else if (transcript.toLowerCase().includes('start') && transcript.toLowerCase().includes('timer')) {
+                        document.getElementById('sr-result').innerHTML += `<div>✅ Command recognized: START TIMER</div>`;
+                    } else if (transcript.toLowerCase().includes('stop')) {
+                        document.getElementById('sr-result').innerHTML += `<div>✅ Command recognized: STOP</div>`;
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    document.getElementById('sr-result').innerHTML += `<div style="color: red;">❌ Error: ${event.error}</div>`;
+                };
+                
+                recognition.onend = () => {
+                    if (isListening) {
+                        recognition.start(); // Restart if supposed to be listening
+                    }
+                };
+                
+            } else {
+                statusDiv.innerHTML = '❌ Speech Recognition API is not supported in this browser.';
+                statusDiv.className = 'status not-supported';
+            }
+        }
+
+        function startListening() {
+            if (!recognition) return;
+            
+            try {
+                recognition.start();
+                isListening = true;
+                document.getElementById('listen-btn').textContent = '🎤 Listening...';
+                document.getElementById('sr-result').innerHTML = '<div>🎧 Listening for voice commands...</div>';
+            } catch (e) {
+                document.getElementById('sr-result').innerHTML = `<div style="color: red;">❌ Error starting recognition: ${e.message}</div>`;
+            }
+        }
+
+        function stopListening() {
+            if (!recognition) return;
+            
+            recognition.stop();
+            isListening = false;
+            document.getElementById('listen-btn').textContent = '🎤 Start Listening';
+            document.getElementById('sr-result').innerHTML += '<div>🛑 Stopped listening.</div>';
+        }
+
+        // Initialize on page load
+        window.onload = () => {
+            initTTS();
+            initSR();
+        };
+    </script>
+</body>
+</html>
