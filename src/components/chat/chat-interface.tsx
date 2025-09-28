@@ -17,7 +17,7 @@ const initialMessage: Message = {
   role: 'assistant',
   content: (
     <div className="space-y-4 text-center">
-      <h1 className="text-4xl sm:text-5xl font-bold text-primary font-headline tracking-tight">
+      <h1 className="text-4xl sm:text-5xl font-bold text-primary font-homemade-apple tracking-tight">
         Hello, I&apos;m GourmetNet
       </h1>
       <p className="text-lg text-muted-foreground">

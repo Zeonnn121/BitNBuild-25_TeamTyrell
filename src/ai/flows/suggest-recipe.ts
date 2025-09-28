@@ -34,7 +34,11 @@ Surprise the user with something they might not have thought of.
 Please create a recipe.
 Provide the recipe name, a list of ingredients, and cooking instructions.
 The instructions should be a numbered list of clear, concise steps.
-Do not use a single paragraph.
+Each step must be on a separate line. Do not use a single paragraph.
+Use format like:
+1. First step here
+2. Second step here  
+3. Third step here
 Respond in markdown format.
 
 Recipe name:

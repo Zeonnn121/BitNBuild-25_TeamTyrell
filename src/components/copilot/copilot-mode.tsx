@@ -116,10 +116,28 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
   });
 
   const steps = useMemo(() => {
-    return recipe.instructions
+    // First, split by newlines to handle properly formatted instructions
+    let instructionSteps = recipe.instructions
       .split('\n')
-      .map((s) => s.replace(/^\d+\.\s*/, '').trim())
+      .map(s => s.trim())
       .filter(Boolean);
+    
+    // If we only get one step (paragraph format), try to split by sentence patterns
+    if (instructionSteps.length === 1) {
+      const singleStep = instructionSteps[0];
+      // Split by patterns like "1.", "2.", "First", "Then", "Next", "Finally"
+      const splitPatterns = /(?=(?:\d+\.|First|Then|Next|After|Finally|Meanwhile|Lastly)\s)/gi;
+      instructionSteps = singleStep.split(splitPatterns)
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+    
+    // Clean up each step by removing leading numbers and common step indicators
+    return instructionSteps.map(s => 
+      s.replace(/^\d+\.\s*/, '')
+       .replace(/^(First|Then|Next|After|Finally|Meanwhile|Lastly),?\s*/i, '')
+       .trim()
+    ).filter(Boolean);
   }, [recipe.instructions]);
 
   const stepTime = useMemo(() => parseTime(steps[currentStep] || ''), [steps, currentStep]);

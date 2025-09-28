@@ -22,11 +22,28 @@ const styleOptions = [
 ];
 
 const parseInstructions = (instructions: string) => {
-    return instructions
+    // First, split by newlines to handle properly formatted instructions
+    let steps = instructions
         .split('\n')
         .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .map(line => line.replace(/^\d+\.\s*/, '').trim()); // remove leading numbers
+        .filter(line => line.length > 0);
+    
+    // If we only get one step (paragraph format), try to split by sentence patterns
+    if (steps.length === 1) {
+        const singleStep = steps[0];
+        // Split by patterns like "1.", "2.", "First", "Then", "Next", "Finally"
+        const splitPatterns = /(?=(?:\d+\.|First|Then|Next|After|Finally|Meanwhile|Lastly)\s)/gi;
+        steps = singleStep.split(splitPatterns)
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+    }
+    
+    // Clean up each step by removing leading numbers and common step indicators
+    return steps.map(line => 
+        line.replace(/^\d+\.\s*/, '')
+            .replace(/^(First|Then|Next|After|Finally|Meanwhile|Lastly),?\s*/i, '')
+            .trim()
+    ).filter(line => line.length > 0);
 }
 
 export default function RecipeCard({ recipe, style, onAnalyzeNutrition, onTransferStyle, onStartCooking }: RecipeCardProps) {
