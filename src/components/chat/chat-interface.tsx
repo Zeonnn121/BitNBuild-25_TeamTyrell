@@ -181,23 +181,45 @@ export default function ChatInterface({ messages: initialMessages = [], onMessag
     return <CoPilotMode recipe={activeRecipe} onExit={handleExitCooking} />
   }
 
+  // Initial centered state when no messages
+  if (messages.length === 0) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-3xl space-y-8">
+          {/* Centered initial message */}
+          <div className="text-center space-y-4">
+            <ChatMessage message={initialMessage} onAnalyzeNutrition={()=>{}} onTransferStyle={()=>{}} onStartCooking={()=>{}} />
+          </div>
+          
+          {/* Centered input */}
+          <div className="w-full">
+            <ChatInput 
+              formRef={formRef}
+              onFormSubmit={handleFormSubmit} 
+              onSuggest={handleSuggest} 
+              isSuggesting={isSuggesting}
+              formAction={formAction}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal chat layout after messages exist
   return (
     <div className="h-full flex flex-col">
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         <div className="space-y-8 max-w-3xl mx-auto py-8">
-          {messages.length === 0 ? (
-             <ChatMessage message={initialMessage} onAnalyzeNutrition={()=>{}} onTransferStyle={()=>{}} onStartCooking={()=>{}} />
-          ) : (
-            messages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                message={msg}
-                onAnalyzeNutrition={handleNutritionAnalysis}
-                onTransferStyle={handleStyleTransfer}
-                onStartCooking={handleStartCooking}
-              />
-            ))
-          )}
+          {messages.map((msg) => (
+            <ChatMessage
+              key={msg.id}
+              message={msg}
+              onAnalyzeNutrition={handleNutritionAnalysis}
+              onTransferStyle={handleStyleTransfer}
+              onStartCooking={handleStartCooking}
+            />
+          ))}
         </div>
       </ScrollArea>
       <div className="border-t bg-background/80 backdrop-blur-sm">

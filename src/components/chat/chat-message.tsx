@@ -109,7 +109,7 @@ export default function ChatMessage({ message, onAnalyzeNutrition, onTransferSty
 
   if (isInitial) {
     return (
-        <div className="flex h-full items-center justify-center">
+        <div className="text-center">
             {message.content}
         </div>
     )
