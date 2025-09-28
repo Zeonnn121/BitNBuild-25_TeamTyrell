@@ -117,25 +117,25 @@ export default function ChatMessage({ message, onAnalyzeNutrition, onTransferSty
 
   return (
     <div className={cn(
-        "flex items-start gap-4", 
+        "flex items-start gap-2 sm:gap-4", 
         isUser ? "justify-end" : "animate-in",
         isUser && "animate-in"
       )}
       style={{ '--duration': '500ms' } as React.CSSProperties}
     >
       {!isUser && (
-        <Avatar className="w-10 h-10 border-2 border-primary/50 shrink-0">
+        <Avatar className="w-8 h-8 sm:w-10 sm:h-10 border-2 border-primary/50 shrink-0">
           <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
-             <Utensils className="h-5 w-5" />
+             <Utensils className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </Avatar>
       )}
       <div className={cn(
-        "max-w-[85%] rounded-lg shadow-md",
+        "max-w-[90%] sm:max-w-[85%] rounded-lg shadow-md",
         isUser
           ? "bg-primary text-primary-foreground rounded-br-none"
           : "bg-card text-card-foreground rounded-bl-none border",
-        !message.image && "px-4 py-3"
+        !message.image && "px-3 py-2 sm:px-4 sm:py-3"
       )}>
         {message.isLoading ? (
           <div className="flex items-center gap-2 px-4 py-3">

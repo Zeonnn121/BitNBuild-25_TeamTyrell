@@ -99,17 +99,17 @@ export default function ChatInput({ formRef, onFormSubmit, onSuggest, isSuggesti
 
 
   return (
-    <form ref={formRef} action={formAction} onSubmit={(e) => handleSubmit(new FormData(e.currentTarget))} className="relative space-y-4">
+    <form ref={formRef} action={formAction} onSubmit={(e) => handleSubmit(new FormData(e.currentTarget))} className="relative space-y-3 sm:space-y-4">
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <ChefHat className="w-5 h-5" />
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+              <ChefHat className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Skill Level</span>
           </div>
-          <ToggleGroup type="single" defaultValue="Intermediate" variant="outline" className="flex-wrap justify-start">
+          <ToggleGroup type="single" defaultValue="Intermediate" variant="outline" className="flex-wrap justify-start gap-1 sm:gap-2">
             {skillLevels.map(level => (
-              <ToggleGroupItem key={level} value={level} aria-label={level}>
+              <ToggleGroupItem key={level} value={level} aria-label={level} className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2">
                 {level}
               </ToggleGroupItem>
             ))}
@@ -118,13 +118,13 @@ export default function ChatInput({ formRef, onFormSubmit, onSuggest, isSuggesti
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Tag className="w-5 h-5" />
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+              <Tag className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Recipe Style (optional)</span>
           </div>
-          <ToggleGroup type="multiple" variant="outline" className="flex-wrap justify-start">
+          <ToggleGroup type="multiple" variant="outline" className="flex-wrap justify-start gap-1 sm:gap-2">
             {recipeStyles.map(style => (
-              <ToggleGroupItem key={style} value={style} aria-label={style}>
+              <ToggleGroupItem key={style} value={style} aria-label={style} className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2">
                 {style}
               </ToggleGroupItem>
             ))}
@@ -135,8 +135,8 @@ export default function ChatInput({ formRef, onFormSubmit, onSuggest, isSuggesti
 
       <div 
         className={cn(
-          "relative transition-all duration-300 rounded-full",
-          isDragging && "ring-4 ring-primary/50 ring-offset-2 ring-offset-background bg-primary/10"
+          "relative transition-all duration-300 rounded-2xl sm:rounded-full",
+          isDragging && "ring-2 sm:ring-4 ring-primary/50 ring-offset-1 sm:ring-offset-2 ring-offset-background bg-primary/10"
         )}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -144,50 +144,50 @@ export default function ChatInput({ formRef, onFormSubmit, onSuggest, isSuggesti
         onDrop={handleDrop}
       >
           {imagePreview && (
-            <div className="absolute bottom-full left-0 mb-2 p-2 bg-card rounded-lg border shadow-lg">
+            <div className="absolute bottom-full left-0 mb-2 p-2 bg-card rounded-lg border shadow-lg z-10">
               <div className="relative">
-                <Image src={imagePreview} alt="Image preview" width={80} height={80} className="rounded-md object-cover w-20 h-20" />
+                <Image src={imagePreview} alt="Image preview" width={80} height={80} className="rounded-md object-cover w-16 h-16 sm:w-20 sm:h-20" />
                 <Button
                   type="button"
                   variant="destructive"
                   size="icon"
-                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                  className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-5 w-5 sm:h-6 sm:w-6 rounded-full"
                   onClick={handleRemoveImage}
                   aria-label="Remove image"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
           )}
           {isDragging && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-full pointer-events-none">
-                <ImageIcon className="w-12 h-12 text-primary" />
-                <p className="font-bold text-primary">Drop image here</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-2xl sm:rounded-full pointer-events-none">
+                <ImageIcon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
+                <p className="font-bold text-primary text-sm sm:text-base">Drop image here</p>
             </div>
           )}
           <div className="relative flex w-full items-center">
-            <div className="absolute left-2.5 flex items-center gap-1">
+            <div className="absolute left-2 sm:left-2.5 flex flex-col sm:flex-row items-start sm:items-center gap-1 z-10">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-primary rounded-full w-10 h-10"
+                className="text-muted-foreground hover:text-primary rounded-full w-8 h-8 sm:w-10 sm:h-10"
                 onClick={() => fileInputRef.current?.click()}
                 aria-label="Attach image"
               >
-                {imagePreview ? <ImageIcon className="text-primary"/> : <Paperclip/>}
+                {imagePreview ? <ImageIcon className="text-primary h-4 w-4 sm:h-5 sm:w-5"/> : <Paperclip className="h-4 w-4 sm:h-5 sm:w-5"/>}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-primary rounded-full w-10 h-10"
+                className="text-muted-foreground hover:text-primary rounded-full w-8 h-8 sm:w-10 sm:h-10"
                 onClick={onSuggest}
                 disabled={isSuggesting}
                 aria-label="Suggest a recipe"
               >
-                {isSuggesting ? <Spinner /> : <Sparkles />}
+                {isSuggesting ? <Spinner className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
               </Button>
             </div>
             <input
@@ -203,11 +203,13 @@ export default function ChatInput({ formRef, onFormSubmit, onSuggest, isSuggesti
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Describe your ingredients, drag & drop an image, or ask for a suggestion..."
-              className="w-full pl-[6.5rem] pr-14 py-3 bg-card rounded-full border focus-within:ring-2 focus-within:ring-primary/50 shadow-sm resize-none h-12 flex items-center"
+              className="w-full pl-16 sm:pl-[6.5rem] pr-12 sm:pr-14 py-2 sm:py-3 bg-card rounded-2xl sm:rounded-full border focus-within:ring-2 focus-within:ring-primary/50 shadow-sm resize-none min-h-[2.5rem] sm:h-12 flex items-center text-sm sm:text-base"
               rows={1}
             />
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-              <SubmitButton />
+            <div className="absolute right-1 sm:right-1.5 top-1/2 -translate-y-1/2">
+              <Button type="submit" size="icon" disabled={false} aria-label="Send message" className="rounded-full w-8 h-8 sm:w-10 sm:h-10">
+                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
             </div>
           </div>
       </div>

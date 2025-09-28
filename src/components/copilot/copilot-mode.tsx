@@ -233,34 +233,36 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
   const progress = ((currentStep + 1) / steps.length) * 100;
   
   return (
-    <div className="flex flex-col h-full items-center justify-center p-4 sm:p-6 lg:p-8 bg-background">
-      <Card className="w-full max-w-3xl flex flex-col h-full sm:max-h-[90vh] shadow-2xl">
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-                <CardTitle className="text-2xl font-headline text-primary">{recipe.recipeName}</CardTitle>
-                <CardDescription>Co-Pilot Mode: Step-by-step guidance</CardDescription>
+    <div className="flex flex-col h-full items-center justify-center p-2 sm:p-4 lg:p-8 bg-background">
+      <Card className="w-full max-w-3xl flex flex-col h-full sm:max-h-[95vh] shadow-2xl">
+        <CardHeader className="pb-3 sm:pb-6">
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-xl lg:text-2xl font-headline text-primary truncate">{recipe.recipeName}</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Co-Pilot Mode: Step-by-step guidance</CardDescription>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleExit} aria-label="Exit CoPilot Mode">
-                <X className="h-6 w-6" />
+            <Button variant="ghost" size="icon" onClick={handleExit} aria-label="Exit CoPilot Mode" className="flex-shrink-0">
+                <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-card/50 rounded-lg relative overflow-hidden m-6 mt-0">
+        <CardContent className="flex-1 flex flex-col items-center justify-center text-center p-3 sm:p-6 bg-card/50 rounded-lg relative overflow-hidden mx-2 sm:mx-6 mb-3 sm:mb-6">
             <div key={currentStep} className="animate-in fade-in-50 slide-in-from-bottom-5 duration-500 w-full">
-                <p className="text-2xl md:text-4xl font-semibold">{steps[currentStep]}</p>
+                <p className="text-base sm:text-xl md:text-2xl lg:text-4xl font-semibold leading-relaxed px-2">{steps[currentStep]}</p>
                 {timer !== null && (
-                  <div className="mt-8 space-y-4 animate-in fade-in duration-700">
-                    <p className="text-6xl font-bold font-mono tracking-tighter text-primary">{formatTime(timer)}</p>
-                    <div className="flex justify-center gap-2">
-                       <Button onClick={toggleTimer} size="lg" className="w-32">
-                         {isTimerRunning ? <Pause className="mr-2 h-5 w-5"/> : <Play className="mr-2 h-5 w-5" />}
-                         {isTimerRunning ? 'Pause' : 'Start'}
+                  <div className="mt-4 sm:mt-8 space-y-3 sm:space-y-4 animate-in fade-in duration-700">
+                    <p className="text-4xl sm:text-5xl lg:text-6xl font-bold font-mono tracking-tighter text-primary">{formatTime(timer)}</p>
+                    <div className="flex justify-center gap-2 flex-wrap">
+                       <Button onClick={toggleTimer} size="lg" className="w-24 sm:w-32 text-sm sm:text-base">
+                         {isTimerRunning ? <Pause className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/> : <Play className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />}
+                         <span className="hidden sm:inline">{isTimerRunning ? 'Pause' : 'Start'}</span>
+                         <span className="sm:hidden">{isTimerRunning ? '⏸' : '▶'}</span>
                        </Button>
-                       <Button onClick={resetTimer} variant="outline" size="lg">
-                         <RefreshCw className="mr-2 h-5 w-5" />
-                         Reset
+                       <Button onClick={resetTimer} variant="outline" size="lg" className="w-20 sm:w-auto text-sm sm:text-base">
+                         <RefreshCw className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                         <span className="hidden sm:inline">Reset</span>
+                         <span className="sm:hidden">↻</span>
                        </Button>
                     </div>
                   </div>
@@ -268,37 +270,38 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
             </div>
         </CardContent>
 
-        <div className="px-6 pb-6 space-y-4">
+        <div className="px-3 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
             <div className="space-y-2">
                 <Progress value={progress} className="w-full h-2" />
-                <p className="text-sm text-center text-muted-foreground">Step {currentStep + 1} of {steps.length}</p>
+                <p className="text-xs sm:text-sm text-center text-muted-foreground">Step {currentStep + 1} of {steps.length}</p>
             </div>
 
-            <div className="grid grid-cols-3 items-center gap-2 sm:gap-4">
+            <div className="grid grid-cols-3 items-center gap-1 sm:gap-2 lg:gap-4">
               <Button
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentStep === 0}
-                className="w-full"
+                className="w-full text-xs sm:text-sm h-9 sm:h-10"
                 aria-label="Previous Step"
               >
-                <ChevronLeft className="h-5 w-5 mr-2" />
-                Previous
+                <ChevronLeft className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
               </Button>
               
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
                 {ttsSupported && (
                   <Button 
                     variant={isSpeaking ? "default" : "ghost"}
                     size="icon" 
                     className={cn(
-                      "w-12 h-12 rounded-full text-accent-foreground shadow-lg hover:scale-105 transition-all",
+                      "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full text-accent-foreground shadow-lg hover:scale-105 transition-all",
                       isSpeaking ? "bg-secondary animate-pulse" : "bg-accent"
                     )}
                     onClick={isSpeaking ? toggleSpeech : readCurrentStep}
                     aria-label={isSpeaking ? (ttsPaused ? "Resume reading" : "Pause reading") : "Read step aloud"}
                   >
-                    {isSpeaking ? (ttsPaused ? <Volume2 className="h-5 w-5"/> : <VolumeX className="h-5 w-5"/>) : <Volume2 className="h-5 w-5"/>}
+                    {isSpeaking ? (ttsPaused ? <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5"/> : <VolumeX className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5"/>) : <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5"/>}
                   </Button>
                 )}
                 
@@ -307,26 +310,28 @@ export default function CoPilotMode({ recipe, onExit }: CoPilotModeProps) {
                     variant={isListening ? "default" : "ghost"}
                     size="icon" 
                     className={cn(
-                      "w-12 h-12 rounded-full text-accent-foreground shadow-lg hover:scale-105 transition-all",
+                      "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full text-accent-foreground shadow-lg hover:scale-105 transition-all",
                       isListening ? "bg-primary animate-pulse" : "bg-accent"
                     )}
                     onClick={toggleListening}
                     aria-label={isListening ? "Stop voice commands" : "Use voice commands"}
                   >
-                    {isListening ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
+                    {isListening ? <Mic className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5"/> : <MicOff className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5"/>}
                   </Button>
                 )}
               </div>
 
               {currentStep < steps.length - 1 ? (
-                 <Button onClick={handleNext} className="w-full" aria-label="Next Step">
-                    Next
-                    <ChevronRight className="h-5 w-5 ml-2" />
+                 <Button onClick={handleNext} className="w-full text-xs sm:text-sm h-9 sm:h-10" aria-label="Next Step">
+                    <span className="hidden sm:inline">Next</span>
+                    <span className="sm:hidden">Next</span>
+                    <ChevronRight className="h-4 w-4 ml-1 sm:ml-2" />
                 </Button>
               ) : (
-                <Button onClick={handleExit} variant="destructive" className="w-full" aria-label="Finish Cooking">
-                    Finish
-                    <X className="h-5 w-5 ml-2" />
+                <Button onClick={handleExit} variant="destructive" className="w-full text-xs sm:text-sm h-9 sm:h-10" aria-label="Finish Cooking">
+                    <span className="hidden sm:inline">Finish</span>
+                    <span className="sm:hidden">End</span>
+                    <X className="h-4 w-4 ml-1 sm:ml-2" />
                 </Button>
               )}
             </div>

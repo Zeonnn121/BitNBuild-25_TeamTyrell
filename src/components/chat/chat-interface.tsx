@@ -184,15 +184,15 @@ export default function ChatInterface({ messages: initialMessages = [], onMessag
   // Initial centered state when no messages
   if (messages.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-3xl space-y-8">
+      <div className="h-full flex flex-col items-center justify-center p-3 sm:p-4">
+        <div className="w-full max-w-3xl space-y-6 sm:space-y-8">
           {/* Centered initial message */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-3 sm:space-y-4 px-2">
             <ChatMessage message={initialMessage} onAnalyzeNutrition={()=>{}} onTransferStyle={()=>{}} onStartCooking={()=>{}} />
           </div>
           
           {/* Centered input */}
-          <div className="w-full">
+          <div className="w-full px-2 sm:px-0">
             <ChatInput 
               formRef={formRef}
               onFormSubmit={handleFormSubmit} 
@@ -209,8 +209,8 @@ export default function ChatInterface({ messages: initialMessages = [], onMessag
   // Normal chat layout after messages exist
   return (
     <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-8 max-w-3xl mx-auto py-8">
+      <ScrollArea className="flex-1 p-2 sm:p-4" ref={scrollAreaRef}>
+        <div className="space-y-4 sm:space-y-8 max-w-3xl mx-auto py-4 sm:py-8">
           {messages.map((msg) => (
             <ChatMessage
               key={msg.id}
@@ -223,7 +223,7 @@ export default function ChatInterface({ messages: initialMessages = [], onMessag
         </div>
       </ScrollArea>
       <div className="border-t bg-background/80 backdrop-blur-sm">
-        <div className="max-w-3xl mx-auto p-4">
+        <div className="max-w-3xl mx-auto p-2 sm:p-4">
           <ChatInput 
             formRef={formRef}
             onFormSubmit={handleFormSubmit} 
